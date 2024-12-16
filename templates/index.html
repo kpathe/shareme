@@ -1,0 +1,37 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShareToMe - Welcome</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="index-container">
+        <h1>Welcome to ShareToMe</h1>
+        <p>Your one-stop chat and link-sharing platform!</p>
+        
+        {% if 'user_id' in session %}
+        <!-- If user is logged in, redirect them to the chat page -->
+        <p>You are logged in as {{ user_email }}. <a href="{{ url_for('chat') }}">Go to Chat</a></p>
+        {% else %}
+        <!-- If user is not logged in, prompt them to log in or register -->
+        <p><a href="{{ url_for('login') }}">Login</a> | <a href="{{ url_for('register') }}">Register</a></p>
+        {% endif %}
+    </div>
+    <style>
+        .index-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+    </style>
+</body>
+</html>

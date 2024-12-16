@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Chat - ShareToMe</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>Welcome to ShareToMe Chat</h2>
+        
+        <!-- Logout Button -->
+        <a href="{{ url_for('logout') }}">
+            <button>Logout</button>
+        </a>
+        
+        <div id="date-header"></div>
+        <div id="messages">
+            <!-- Render messages from the server -->
+            {% for message in messages %}
+            <div class="message {{ 'user-message' if message.sender == user_email else 'other-user-message' }}">
+                <strong>{{ message.sender }}:</strong> 
+                {{ format_message(message.content)|safe }}
+                <span class="time">({{ message.timestamp.strftime('%H:%M:%S') }})</span>
+            </div>
+            {% endfor %}
+        </div>
+        <input type="text" id="message" placeholder="Share a link or say something..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <script>
+        const socket = io();
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('message');
+
+        // Helper function to make URLs clickable
+        function makeLinksClickable(text) {
+            const urlPattern = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlPattern, '<a href="$&" target="_blank">$&</a>');
+        }
+
+        socket.on('message', (data) => {
+            const { sender, content, time } = data;
+
+            // Make links clickable
+            const clickableContent = makeLinksClickable(content);
+
+            // Display new message
+            const messageDiv = document.createElement('div');
+            const messageClass = sender === "{{ user_email }}" ? 'user-message' : 'other-user-message';
+            messageDiv.classList.add(messageClass);
+            messageDiv.innerHTML = `
+                <strong>${sender}:</strong> ${clickableContent} <span class="time">(${time})</span>
+            `;
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight; // Auto-scroll to latest message
+        });
+
+        function sendMessage() {
+            const msg = input.value;
+            if (msg.trim() !== "") {
+                socket.emit('message', msg);
+                input.value = '';
+            }
+        }
+    </script>
+    <style>
+        /* Add some styling */
+        .time {
+            font-size: 0.8em;
+            color: gray;
+        }
+        #messages div {
+            margin: 5px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            background: #f9f9f9;
+        }
+
+        /* Styles for the current user's messages */
+        .user-message {
+            align-self: flex-end;
+            background-color: #d1e7fd;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+
+        /* Styles for other users' messages */
+        .other-user-message {
+            align-self: flex-start;
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+    </style>
+</body>
+</html>
